@@ -1,41 +1,27 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
-import { AuthContext } from "../../../contexts/AuthContext";
-import type Postagem from "../../../models/Postagem";
 import { buscar, deletar } from "../../../services/Service";
+import type Categoria from "../../../models/Categoria";
 
-function DeletarPostagem() {
+function DeletarCategoria() {
   const navigate = useNavigate();
 
+  const [categoria, setCategoria] = useState<Categoria>({} as Categoria);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [postagem, setPostagem] = useState<Postagem>({} as Postagem);
 
   const { id } = useParams<{ id: string }>();
 
-  const { usuario, handleLogout } = useContext(AuthContext);
-  const token = usuario.token;
-
   async function buscarPorId(id: string) {
     try {
-      await buscar(`/postagens/${id}`, setPostagem, {
-        headers: {
-          Authorization: token,
-        },
-      });
+      await buscar(`/categorias/${id}`, setCategoria);
     } catch (error: any) {
       if (error.toString().includes("401")) {
-        handleLogout();
+        navigate("/");
       }
     }
   }
-
-  useEffect(() => {
-    if (token === "") {
-      alert("Você precisa estar logado");
-      navigate("/");
-    }
-  }, [token]);
 
   useEffect(() => {
     if (id !== undefined) {
@@ -43,22 +29,17 @@ function DeletarPostagem() {
     }
   }, [id]);
 
-  async function deletarPostagem() {
+  async function deletarCategoria() {
     setIsLoading(true);
 
     try {
-      await deletar(`/postagens/${id}`, {
-        headers: {
-          Authorization: token,
-        },
-      });
-
-      alert("Postagem apagada com sucesso");
+      await deletar(`/categorias/${id}`);
+      alert("Categoria apagada com sucesso!");
     } catch (error: any) {
       if (error.toString().includes("401")) {
-        handleLogout();
+        navigate('/')
       } else {
-        alert("Erro ao deletar a postagem.");
+        alert("Erro ao deletar a categoria.");
       }
     }
 
@@ -67,25 +48,24 @@ function DeletarPostagem() {
   }
 
   function retornar() {
-    navigate("/postagens");
+    navigate("/categorias");
   }
 
   return (
     <div className="container w-1/3 mx-auto">
-      <h1 className="text-4xl text-center my-4">Deletar Postagem</h1>
+      <h1 className="text-4xl text-center my-4">Deletar Categoria</h1>
 
       <p className="text-center font-semibold mb-4">
-        Você tem certeza de que deseja apagar a postagem a seguir?
+        Você tem certeza que deseja apagar esse categoria?
       </p>
 
       <div className="border flex flex-col rounded-2xl overflow-hidden justify-between">
         <header className="py-2 px-6 bg-indigo-600 text-white font-bold text-2xl">
-          Postagem
+          {categoria.nome}
         </header>
-        <div className="p-4">
-          <p className="text-xl h-full">{postagem.titulo}</p>
-          <p>{postagem.texto}</p>
-        </div>
+
+        <p className="p-8 text-3xl bg-slate-200 h-full">{categoria.descricao}</p>
+
         <div className="flex">
           <button
             className="text-slate-100 bg-red-400 hover:bg-red-600 w-full py-2"
@@ -93,10 +73,10 @@ function DeletarPostagem() {
           >
             Não
           </button>
+
           <button
-            className="w-full text-slate-100 bg-indigo-400 
-                        hover:bg-indigo-600 flex items-center justify-center"
-            onClick={deletarPostagem}
+            className="w-full text-slate-100 bg-indigo-400 hover:bg-indigo-600 flex items-center justify-center"
+            onClick={deletarCategoria}
           >
             {isLoading ? (
               <ClipLoader color="#ffffff" size={24} />
@@ -110,4 +90,4 @@ function DeletarPostagem() {
   );
 }
 
-export default DeletarPostagem;
+export default DeletarCategoria;
